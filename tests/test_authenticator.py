@@ -65,11 +65,11 @@ async def test_min_pass_length(caplog, tmpcwd):
         for record in caplog.records:
             assert record.levelname != 'ERROR'
 
-async def test_min_pass_length(caplog, test_first_use):
+async def test_new_min_pass_length(caplog, test_first_use):
 	
 	users = []
 	auth = test_first_use
-	auth.min_password_length = password_length
+	password_length = auth.min_password_length
 	
     def user_exists(username):
         return username in users
@@ -208,30 +208,4 @@ async def test_normalized_check(caplog, tmpcwd):
 
     # load again, should skip the
     auth3 = FirstUseAuthenticator()
-
-async def test_min_pass_length(caplog, tmpcwd, test_first_use):
-	
-	users = []
-	auth = test_first_use
-	auth.min_password_length = password_length
-	
-    def user_exists(username):
-        return username in users
-        
-	# new user, first login, only passwords longer than 10 chars allowed
-    name = "newuser"
-    password = "tooshort"
-    
-    with mock.patch.object(auth, '_user_exists', user_exists):
-        username = await auth.authenticate(mock.Mock(), {"username": name, "password": password})
-        assert username is None
-        
-        # assert that new users' passwords must have the specified length
-        for record in caplog.records:
-            if record.levelname == 'ERROR':
-                assert record.msg == (
-                    'Password too short! Please choose a password at least %d characters long.'
-                    % auth.min_password_length
                 )
-
-	assert len(password) >= password_length
